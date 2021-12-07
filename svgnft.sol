@@ -9,10 +9,27 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     // Incremental counter of token ID and we iterate
     uint256 public tokenCounter;
     event CreatedSVGNFT(uint256 indexed tokenId, string tokenURI);
-
+    
+    // Ad struct
+    struct Ad {
+	    address minter; // Whoever minted this NFT
+	    uint256 price; // How much a sponsor is willing to pay for the ad
+	    uint expiryDate; // When this ad expires
+    }
+    // stores an `Ad` struct using tokenID as a key.
+    mapping(uint => Ad) public ads;
+    
+    // LandOwner struct
+    struct Landowner {
+        uint256 landx; // x cor of land
+        uint256 landy; // y cor of land
+        uint256[] tokenIDs; // ID of transferred NFTs
+    }
+    // stores a `LandOwner` struct for each address.
+    mapping(address => LandOwner) public landOwners;
+    
     constructor() ERC721("SVG on-chain NFT", "svgNFT")
     {
-        minter = msg.sender;
         tokenCounter = 0;
     }
 
@@ -20,14 +37,18 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     // 1. SVG > Image URI
     // 2. Image URI > Token URI format
     // 3. Create with Token URI
-    function create(string memory svg) public {
-        // Only owner can mint NFTs
-        // require(msg.sender == owner());
+    function create(string memory svg, uint256 memory price) public {
         _safeMint(msg.sender, tokenCounter);
         // 1. SVG format > data:XXX
         string memory imageURI = svgToImageURI(svg);
         // 2. ERC721Metadata func to make it in token URI form
         _setTokenURI(tokenCounter, formatTokenURI(imageURI));
+        
+        // Add to ads and set all values
+        Ad storage ad = ads[tokenCounter];
+        ad.price = price;
+        ad.minter = msg.sender;
+        
         tokenCounter = tokenCounter + 1;
         emit CreatedSVGNFT(tokenCounter, svg);
     }
