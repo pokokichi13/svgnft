@@ -12,18 +12,18 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     
     // Ad struct
     struct Ad {
-	    address minter; // Whoever minted this NFT
-	    uint256 price; // How much a sponsor is willing to pay for the ad
-	    uint expiryDate; // When this ad expires
+	address minter; // Whoever minted this NFT
+	uint256 price; // How much a sponsor is willing to pay for the ad
+	uint expiryDate; // When this ad expires
     }
     // stores an `Ad` struct using tokenID as a key.
     mapping(uint => Ad) public ads;
     
     // LandOwner struct
     struct Landowner {
-        uint256 landx; // x cor of land
-        uint256 landy; // y cor of land
-        uint256[] tokenIDs; // ID of transferred NFTs
+	uint256 landx; // x cor of land
+	uint256 landy; // y cor of land
+	uint256[] tokenIDs; // ID of transferred NFTs
     }
     // stores a `LandOwner` struct for each address.
     mapping(address => LandOwner) public landOwners;
