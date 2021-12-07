@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "https://github.com/Brechtpd/base64/blob/main/base64.sol";
 
 contract SVGtoNFT is ERC721URIStorage, Ownable {
-    // Incremental counter of token ID
+    // Incremental counter of token ID and we iterate
     uint256 public tokenCounter;
     event CreatedSVGNFT(uint256 indexed tokenId, string tokenURI);
 
@@ -22,7 +22,7 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     // 3. Create with Token URI
     function create(string memory svg) public {
         // Only owner can mint NFTs
-        require(msg.sender == owner());
+        // require(msg.sender == owner());
         _safeMint(msg.sender, tokenCounter);
         // 1. SVG format > data:XXX
         string memory imageURI = svgToImageURI(svg);
