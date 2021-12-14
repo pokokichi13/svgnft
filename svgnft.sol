@@ -3,7 +3,7 @@ pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "https://github.com/Brechtpd/base64/blob/main/base64.sol";
+import "./base64.sol";
 
 contract SVGtoNFT is ERC721URIStorage, Ownable {
     // Incremental counter of token ID and we iterate
@@ -11,7 +11,9 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     
     // Emits event on NFT create()
     event CreatedSVGNFT(uint256 indexed tokenId, string tokenURI);
-    
+    // Emits event on NFT transfer
+    event TransferredSVGNFT(uint256 indexed tokenId, address to);
+
     // Ad struct
     struct Ad {
 	address minter; // Whoever minted this NFT
@@ -57,8 +59,7 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
         string memory baseURL = "data:image/svg+xml;base64,";
     
         string memory svgBase64Encoded = Base64.encode(bytes(string(abi.encodePacked(svg))));
-        string memory imageURI = abi.encodePacked(baseURL,svgBase64Encoded);
-        return imageURI;
+        return string(abi.encodePacked(baseURL,svgBase64Encoded));
     }
 
     // 2. Image URI to base64 format
@@ -81,31 +82,31 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     
     // Check expiry and return bool
     function _expiryCheck(Ad storage _ad) internal view returns (bool) {
-      return (_ad.expiryDate <= now);
+      return (_ad.expiryDate <= block.timestamp);
     }
     
     // Show expiry of NFT
-    function getExpiry(uint memory _tokenID) internal view returns (uint32) {
+    function getExpiry(uint _tokenID) internal view returns (uint32) {
       return ads[_tokenID].expiryDate;
     }
     
     // Send NFT from one to another
-    function sendNFT(address _to, uint memory _tokenID) external{
+    function sendNFT(address _to, uint _tokenID) external{
         require(msg.sender == ads[_tokenID].minter,"Only minter can transfer");
         // ERC721 function that transfers owner
 	transferFrom(msg.sender, _to, _tokenID);
 	// Change ads array info
         ads[_tokenID].landOwner = _to;
-	ads[_tokenID].expiryDate = uint32(now + expiryDuration);
+	    ads[_tokenID].expiryDate = uint32(block.timestamp + expiryDuration);
 	
 	//TBD
 	//Set land coordinate
 	
-        emit TransferredSVGNFT(_tokenID, to);
+        emit TransferredSVGNFT(_tokenID, _to);
     }
     
     // Check expiry and send the ad back to owner
-    function sendBackNFT(uint memory _tokenID) external{
+    function sendBackNFT(uint _tokenID) external{
 	    require(msg.sender == ads[_tokenID].minter,"Only minter can transfer");
 	    Ad storage myad = ads[_tokenID];
 	    require(_expiryCheck(myad));
@@ -114,15 +115,15 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     }
     
     // Check NFts you have. Returns an array of tokenIDs 
-    function getMyNFT(address _myAddress) external view returns(uint[]){
+    function getMyNFT(address _myAddress) external view returns (uint[] memory) {
     	uint[] memory result = new uint[](ads.length);
-	uint counter = 0;
+	    uint counter = 0;
     	for (uint i = 0; i < ads.length; i++) {
     		if (ads[i].landOwner == _myAddress) {
     			result[counter] = i;
-			counter++;
-		}
-	}
+			    counter++;
+		    }
+	    }
 	return result;
     }
 }
