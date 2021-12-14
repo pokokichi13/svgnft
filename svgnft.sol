@@ -81,8 +81,8 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     }
     
     // Check expiry and return bool
-    function _expiryCheck(Ad storage _ad) internal view returns (bool) {
-      return (_ad.expiryDate <= block.timestamp);
+    function _expiryCheck(uint _tokenID) internal view returns (bool) {
+      return (ads[_tokenID].expiryDate <= block.timestamp);
     }
     
     // Show expiry of NFT
@@ -115,10 +115,9 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     // Check expiry and send the ad back to owner
     function sendBackNFT(uint _tokenID) external {
 	    require(msg.sender == ads[_tokenID].minter,"Only minter can transfer back");
-	    Ad storage myad = ads[_tokenID];
-	    require(_expiryCheck(myad), "Not expired yet");
+	    require(_expiryCheck(_tokenID), "Not expired yet");
 	    // Send back the NFT
-	    transferFrom(msg.sender, msg.sender, _tokenID);
+	    transferFrom(ads[_tokenID].landOwner, msg.sender, _tokenID);
     }
     
     // Check NFts you have. Returns an array of tokenIDs 
