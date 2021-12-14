@@ -86,30 +86,37 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
     }
     
     // Show expiry of NFT
-    function getExpiry(uint _tokenID) internal view returns (uint32) {
+    // Landowner uses 
+    function getExpiry(uint _tokenID) external view returns (uint32) {
       return ads[_tokenID].expiryDate;
+    }
+
+    // Returns my own NFT information. This is for minter
+    function getMyAdDetail(uint _tokenID) external view returns (address, uint32, uint32, uint32) {
+        require(msg.sender == ads[_tokenID].minter,"Only minter can check details");
+        return (ads[_tokenID].landOwner, ads[_tokenID].landx, ads[_tokenID].landy, ads[_tokenID].expiryDate);
     }
     
     // Send NFT from one to another
     function sendNFT(address _to, uint _tokenID) external{
         require(msg.sender == ads[_tokenID].minter,"Only minter can transfer");
         // ERC721 function that transfers owner
-	transferFrom(msg.sender, _to, _tokenID);
-	// Change ads array info
+        transferFrom(msg.sender, _to, _tokenID);
+        // Change ads array info
         ads[_tokenID].landOwner = _to;
 	    ads[_tokenID].expiryDate = uint32(block.timestamp + expiryDuration);
 	
-	//TBD
-	//Set land coordinate
+        //TBD
+        //Set land coordinate
 	
         emit TransferredSVGNFT(_tokenID, _to);
     }
     
     // Check expiry and send the ad back to owner
-    function sendBackNFT(uint _tokenID) external{
-	    require(msg.sender == ads[_tokenID].minter,"Only minter can transfer");
+    function sendBackNFT(uint _tokenID) external {
+	    require(msg.sender == ads[_tokenID].minter,"Only minter can transfer back");
 	    Ad storage myad = ads[_tokenID];
-	    require(_expiryCheck(myad));
+	    require(_expiryCheck(myad), "Not expired yet");
 	    // Send back the NFT
 	    transferFrom(msg.sender, msg.sender, _tokenID);
     }
@@ -124,6 +131,6 @@ contract SVGtoNFT is ERC721URIStorage, Ownable {
 			    counter++;
 		    }
 	    }
-	return result;
+	    return result;
     }
 }
